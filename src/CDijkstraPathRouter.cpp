@@ -1,28 +1,26 @@
 #include "DijkstraPathRouter.h"
 #include "PathRouter.h"
-
+#include <unordered_map>
 struct CDijkstraPathRouter::SImplementation{
-    SImplementation(){
-        struct Vertex{
+    struct Vertex{
             std::any tag;
             std::vector< std::pair< std::shared_ptr<Vertex>, int > > Nexts;
-        }
+        };    
 
-        std::unordered_map<std::int, std::shared_ptr<Vertex> > VertexHash; //Hash that maps vertex ID's to Vertex Objects
-
-        int ID = 0;//Start with ID of 1
+    std::unordered_map< int, std::shared_ptr<Vertex> > VertexHash; //Hash that maps vertex ID's to Vertex Objects
+    int ID = 0;//Start with ID of 1
+    SImplementation(){
     };
 
     std::size_t VertexCount() const noexcept{
         // Returns the number of vertices in the path router
-        
         return VertexHash.size();
     };
     TVertexID AddVertex(std::any tag) noexcept{
         // Adds a vertex with the tag provided. The tag can be of any type
         std::shared_ptr<Vertex> newVertex = std::make_unique<Vertex>();
         newVertex->tag = tag;
-        ID += 1
+        ID += 1;
         VertexHash[ID] = newVertex;
         return ID;
 
@@ -30,8 +28,8 @@ struct CDijkstraPathRouter::SImplementation{
     std::any GetVertexTag(TVertexID id) const noexcept{
         // Gets the tag of the vertex specified by id if id is in the path router.
         // A std::any() is returned if id is not a valid vertex ID.
-        if (VertexHash[id]){
-            return VertexHash[id]->tag;
+        if (VertexHash.at(id)){
+            return VertexHash.at(id)->tag;
         }
         return std::any();
     };
@@ -40,13 +38,13 @@ struct CDijkstraPathRouter::SImplementation{
     // bidir is set to true an additional edge between dest and src is added. If
     // src or dest nodes do not exist, or if the weight is negative the AddEdge
     // will return false, otherwise it returns true.
-        if (!VertexHash[src] || !VertexHash[dest] || weight < 0){
+        if (!(VertexHash.at(src)) || !(VertexHash.at(dest)) || weight < 0){
             return false;
         }
-        std::pair newPair;
-        newPair.first = VertexHash[dest]; 
+        std::pair<std::shared_ptr<Vertex>, int> newPair;
+        newPair.first = VertexHash.at(dest); 
         newPair.second = weight;
-        VertexHash[src]->Nexts.push_back(newPair);
+        VertexHash.at(src)->Nexts.push_back(newPair);
         return true;
 
     };

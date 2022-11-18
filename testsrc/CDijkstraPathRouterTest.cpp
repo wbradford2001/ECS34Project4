@@ -8,8 +8,8 @@
 #include "DijkstraPathRouter.h"
 
 TEST(CDijkstraPathRouterTest, SimpleTest){
+    CDijkstraPathRouter DijkstraPathRouter();
 
-    EXPECT_EQ(0,0);
 }
 
 TEST(CDijkstraPathRouterTest, VertexCount1){
