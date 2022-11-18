@@ -3,35 +3,59 @@
 
 struct CDijkstraPathRouter::SImplementation{
     SImplementation(){
+        struct Vertex{
+            std::any tag;
+            std::vector< std::pair< std::shared_ptr<Vertex>, int > > Nexts;
+        }
+
+        std::unordered_map<std::int, std::shared_ptr<Vertex> > VertexHash; //Hash that maps vertex ID's to Vertex Objects
+
+        int ID = 0;//Start with ID of 1
     };
 
     std::size_t VertexCount() const noexcept{
         // Returns the number of vertices in the path router
-        std::size_t newSize;
-        return newSize;
+        
+        return VertexHash.size();
     };
     TVertexID AddVertex(std::any tag) noexcept{
         // Adds a vertex with the tag provided. The tag can be of any type
-        TVertexID newID;
-        return newID;
+        std::shared_ptr<Vertex> newVertex = std::make_unique<Vertex>();
+        newVertex->tag = tag;
+        ID += 1
+        VertexHash[ID] = newVertex;
+        return ID;
+
     };
     std::any GetVertexTag(TVertexID id) const noexcept{
         // Gets the tag of the vertex specified by id if id is in the path router.
         // A std::any() is returned if id is not a valid vertex ID.
-        std::any hi;
-        return hi;
+        if (VertexHash[id]){
+            return VertexHash[id]->tag;
+        }
+        return std::any();
     };
     bool AddEdge(TVertexID src, TVertexID dest, double weight, bool bidir) noexcept{
     // Adds an edge between src and dest vertices with a weight of weight. If
     // bidir is set to true an additional edge between dest and src is added. If
     // src or dest nodes do not exist, or if the weight is negative the AddEdge
     // will return false, otherwise it returns true.
+        if (!VertexHash[src] || !VertexHash[dest] || weight < 0){
+            return false;
+        }
+        std::pair newPair;
+        newPair.first = VertexHash[dest]; 
+        newPair.second = weight;
+        VertexHash[src]->Nexts.push_back(newPair);
         return true;
 
     };
 
     bool Precompute(std::chrono::steady_clock::time_point deadline) noexcept{
         // Allows the path router to do any desired precomputation up to the deadline
+
+
+        //iterate through vertices, update adjacency matrix each time.
         return true;
     };
 
