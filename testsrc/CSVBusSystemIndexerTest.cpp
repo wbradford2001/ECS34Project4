@@ -7,6 +7,7 @@
 #include "BusSystemIndexer.h"
 
 TEST(CSVBusSystemIndexer, SimpleTest){
+    
     auto InStreamStops = std::make_shared<CStringDataSource>("stop_id,node_id");
     auto InStreamRoutes = std::make_shared<CStringDataSource>("route,stop_id");
     auto CSVReaderStops = std::make_shared<CDSVReader>(InStreamStops,',');
@@ -15,6 +16,7 @@ TEST(CSVBusSystemIndexer, SimpleTest){
     CBusSystemIndexer BusSystemIndexer(BusSystem);
     EXPECT_EQ(BusSystemIndexer.StopCount(),0);
     EXPECT_EQ(BusSystemIndexer.RouteCount(),0);
+    EXPECT_EQ(0,0);
 }
 
 TEST(CSVBusSystemIndexer, StopTest){

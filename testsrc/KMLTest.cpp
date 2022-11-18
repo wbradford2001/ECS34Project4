@@ -17,6 +17,7 @@ TEST(KMLWriterTest, SimpleTest){
                                     "    <description>Simple KML test</description>\n"
                                     "  </Document>\n"
                                     "</kml>");
+    EXPECT_EQ(1, 1);
 }
 
 TEST(KMLWriterTest, PointStyleTest){
