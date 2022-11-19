@@ -115,13 +115,11 @@ struct COpenStreetMap::SImplementation{
         
         // check osm start first
         while(src->ReadEntity(Entity)){
-            
             if(Entity.DNameData == "osm" && Entity.DType == SXMLEntity::EType::EndElement || src->End()){
                 break;
             }
-            //std::cout<<"name = "<<Entity.DNameData<<std::endl;
             if(Entity.DNameData == "node"){
-                
+
                 // Parse node
                 auto NewNode = std::make_shared<SNode>();
 

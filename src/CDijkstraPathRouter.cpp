@@ -8,7 +8,7 @@ struct CDijkstraPathRouter::SImplementation{
     struct Vertex{
             std::any tag;
             int ID;
-            std::vector< std::pair< std::shared_ptr<Vertex>, int > > Nexts;
+            std::vector< std::pair< std::shared_ptr<Vertex>, double > > Nexts;
         };    
 
     std::unordered_map< int, std::shared_ptr<Vertex> > VertexHash; //Hash that maps vertex ID's to Vertex Objects
@@ -17,7 +17,7 @@ struct CDijkstraPathRouter::SImplementation{
     std::vector<int> VList;//Vertex List
 
     //Map from Source to a Map which contains the distance to all nodes
-    std::unordered_map<int, std::unordered_map<int, int> > VertexToPathLengths;
+    std::unordered_map<int, std::unordered_map<int, double> > VertexToPathLengths;
 
 
     //Map from Source to a Map which contains the path to all nodes
@@ -38,6 +38,7 @@ struct CDijkstraPathRouter::SImplementation{
         VertexHash[ID] = newVertex;
 
         VList.push_back(ID);
+        
         return ID;
 
     };
@@ -57,9 +58,10 @@ struct CDijkstraPathRouter::SImplementation{
         if (!(VertexHash.at(src)) || !(VertexHash.at(dest)) || weight < 0){
             return false;
         }
-        std::pair<std::shared_ptr<Vertex>, int> newPair;
+        std::pair<std::shared_ptr<Vertex>, double> newPair;
         newPair.first = VertexHash.at(dest); 
         newPair.second = weight;
+        std::cout<<newPair.second<<std::endl;
         VertexHash.at(src)->Nexts.push_back(newPair);
 
         if (bidir==true){
@@ -98,7 +100,7 @@ struct CDijkstraPathRouter::SImplementation{
         int n = VList.size();
         
         //distances[NodeID] = distance
-        std::unordered_map<int, int> distances;
+        std::unordered_map<int, double> distances;
         std::unordered_map<int, std::vector<int> > paths;
         
         for (int i = 0; i<n; i++){
@@ -139,7 +141,7 @@ struct CDijkstraPathRouter::SImplementation{
             //updated distance value of all vertices adjacent to minID
             
             //iterate through all adjacent vertices
-            std::vector< std::pair< std::shared_ptr<Vertex>, int > > Nexts = VertexHash[minID]->Nexts;
+            std::vector< std::pair< std::shared_ptr<Vertex>, double > > Nexts = VertexHash[minID]->Nexts;
             for (int adjVI = 0; adjVI < Nexts.size(); adjVI++){
                 
                 int adjacentID = Nexts[adjVI].first->ID;
@@ -157,7 +159,7 @@ struct CDijkstraPathRouter::SImplementation{
             }
 
         }
-    //print distances
+   // print distances
     // for (int vI = 0; vI < n; vI ++){
         
     //     std::cout<<"Distance to vertex: "<<VList[vI]<<"= "<<distances[VList[vI]]<<std::endl;

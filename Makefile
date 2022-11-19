@@ -127,15 +127,17 @@ $(OBJ_DIR)/CDijkstraPathRouter.o: $(SRC_DIR)/CDijkstraPathRouter.cpp $(INC_DIR)/
 
 
 #TransportationPlanner
-$(BIN_DIR)/testtp: $(OBJ_DIR)/CSVOSMTransportationPlannerTest.o $(OBJ_DIR)/CDijkstraTransportationPlanner.o  $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o
-	$(CXX) -o $(BIN_DIR)/testtp $(OBJ_DIR)/CSVOSMTransportationPlannerTest.o $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/StringDataSource.o  $(LDFLAGS)
+$(BIN_DIR)/testtp: $(OBJ_DIR)/CSVOSMTransportationPlannerTest.o $(OBJ_DIR)/CBusSystemIndexer.o $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/CDijkstraPathRouter.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/GeographicUtils.o
+	$(CXX) -o $(BIN_DIR)/testtp $(OBJ_DIR)/CSVOSMTransportationPlannerTest.o $(OBJ_DIR)/CDijkstraPathRouter.o $(OBJ_DIR)/CBusSystemIndexer.o  $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/CSVBusSystem.o $(LDFLAGS)
 
-$(OBJ_DIR)/CSVOSMTransportationPlannerTest.o: $(TESTSRC_DIR)/CSVOSMTransportationPlannerTest.cpp $(INC_DIR)/DijkstraTransportationPlanner.h 
-	$(CXX) -o $(OBJ_DIR)/CSVOSMTransportationPlannerTest.o $(CXXFLAG) -c $(TESTSRC_DIR)/CDijkstraPathRouterTest.cpp $(LDFLAGS) 
+$(OBJ_DIR)/CSVOSMTransportationPlannerTest.o: $(TESTSRC_DIR)/CSVOSMTransportationPlannerTest.cpp $(INC_DIR)/DijkstraTransportationPlanner.h $(OBJ_DIR)/CBusSystemIndexer.o $(OBJ_DIR)/CDijkstraPathRouter.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/GeographicUtils.o
+	$(CXX) -o $(OBJ_DIR)/CSVOSMTransportationPlannerTest.o $(OBJ_DIR)/CDijkstraPathRouter.o  $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/CBusSystemIndexer.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/CSVBusSystem.o $(CXXFLAG) -c $(TESTSRC_DIR)/CSVOSMTransportationPlannerTest.cpp $(LDFLAGS) 
 
-$(OBJ_DIR)/CDijkstraTransportationPlanner.o: $(SRC_DIR)/CDijkstraTransportationPlanner.cpp $(INC_DIR)/DijkstraTransportationPlanner.h $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/CSVBusSystem.o
-	$(CXX) -o $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/CSVBusSystem.o $(CXXFLAG) -c $(SRC_DIR)/CDijkstraTransportationPlanner.cpp 	
+$(OBJ_DIR)/CDijkstraTransportationPlanner.o: $(SRC_DIR)/CDijkstraTransportationPlanner.cpp $(OBJ_DIR)/CDijkstraPathRouter.o $(OBJ_DIR)/CBusSystemIndexer.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/XMLReader.o $(INC_DIR)/DijkstraTransportationPlanner.h $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/GeographicUtils.o
+	$(CXX) -o $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/CDijkstraPathRouter.o $(OBJ_DIR)/CBusSystemIndexer.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/CSVBusSystem.o $(CXXFLAG) -c $(SRC_DIR)/CDijkstraTransportationPlanner.cpp 	
 
+$(OBJ_DIR)/GeographicUtils.o: $(SRC_DIR)/GeographicUtils.cpp $(INC_DIR)/GeographicUtils.h
+	$(CXX) -o $(OBJ_DIR)/GeographicUtils.o $(CXXFLAG) -c $(SRC_DIR)/GeographicUtils.cpp
 
 #TransportationPlannerCommandLine
 $(BIN_DIR)/testtpcl: $(OBJ_DIR)/TPCommandLineTest.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o  $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o
