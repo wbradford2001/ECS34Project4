@@ -61,7 +61,7 @@ struct CDijkstraPathRouter::SImplementation{
         std::pair<std::shared_ptr<Vertex>, double> newPair;
         newPair.first = VertexHash.at(dest); 
         newPair.second = weight;
-        std::cout<<newPair.second<<std::endl;
+        //std::cout<<newPair.second<<std::endl;
         VertexHash.at(src)->Nexts.push_back(newPair);
 
         if (bidir==true){
@@ -175,7 +175,9 @@ struct CDijkstraPathRouter::SImplementation{
     double FindShortestPath(TVertexID src, TVertexID dest, std::vector<TVertexID> &path) noexcept{
         // Returns the path distance of the path from src to dest, and fills out path
         // with vertices. If no path exists NoPathExists is returned.
-        if (VertexToPathLengths[src][dest]==INT_MAX){
+        std::cout<<"Finding path between "<<src<<" and "<<dest<<" which is "<<VertexToPathLengths[src][dest]<<std::endl;
+        if (VertexHash.count(src)==0||VertexToPathLengths[src][dest]==INT_MAX){
+            
             return NoPathExists;
         };
         

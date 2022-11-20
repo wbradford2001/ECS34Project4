@@ -115,6 +115,7 @@ struct COpenStreetMap::SImplementation{
         
         // check osm start first
         while(src->ReadEntity(Entity)){
+            std::cout<<Entity.DNameData<<std::endl;
             if(Entity.DNameData == "osm" && Entity.DType == SXMLEntity::EType::EndElement || src->End()){
                 break;
             }

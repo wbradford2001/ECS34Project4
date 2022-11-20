@@ -45,7 +45,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
             Coords.first = (DStreetMap->NodeByIndex(n))->Location().first;
             Coords.second = (DStreetMap->NodeByIndex(n))->Location().second;
             NodeCoords[(DStreetMap->NodeByIndex(n))->ID()] = Coords;
-            //std::cout<<"adding node of ID: "<<(DStreetMap->NodeByIndex(n))->ID()<<std::endl;
+            std::cout<<"adding node of ID: "<<(DStreetMap->NodeByIndex(n))->ID()<<std::endl;
             //std::cout<<"coords: "<<Coords.first<<", "<<Coords.second<<std::endl;
             
             Router->AddVertex("tag");
@@ -59,7 +59,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
         //std::cout<<"\n\nWayCount: "<<DStreetMap->WayCount()<<std::endl;
         while (wI < DStreetMap->WayCount()){
             int nI = 0;
-            //std::cout<<"For Way: "<<(DStreetMap->WayByIndex(wI))->ID()<<std::endl;
+            std::cout<<"For Way: "<<(DStreetMap->WayByIndex(wI))->ID()<<std::endl;
             if ((DStreetMap->WayByIndex(wI))->HasAttribute("oneway") && (DStreetMap->WayByIndex(wI))->GetAttribute("oneway")=="yes"){
                 //std::cout<<"One Way!!"<<std::endl;
                 bidir = false;
@@ -74,7 +74,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 //std::cout<<SGeographicUtils::HaversineDistanceInMiles(std::make_pair(38.5,-121.7),std::make_pair(38.6,-121.7))<<std::endl;
                 //std::cout<<SGeographicUtils::HaversineDistanceInMiles(std::make_pair(NodeCoords[ID].first,NodeCoords[ID].second),std::make_pair(NodeCoords[NextID].first,NodeCoords[NextID].second))<<std::endl;
                 Router->AddEdge(ID, NextID, weight,bidir);
-                //std::cout<<"edge from "<<ID<<" with coords "<<NodeCoords[ID].first<<", "<<NodeCoords[ID].second<<" to "<<NextID<<" with coords "<<NodeCoords[NextID].first<<", "<<NodeCoords[NextID].second<<" with weight "<<weight<<std::endl;
+                std::cout<<"edge from "<<ID<<" with coords "<<NodeCoords[ID].first<<", "<<NodeCoords[ID].second<<" to "<<NextID<<" with coords "<<NodeCoords[NextID].first<<", "<<NodeCoords[NextID].second<<" with weight "<<weight<<std::endl;
             }
             wI +=1 ;
         }
@@ -95,7 +95,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
         // NodeCount(). nullptr is returned if index is greater than or equal to
         // NodeCount(). The nodes are sorted by Node ID.
         
-        return DStreetMap->NodeByIndex(index);
+        return DStreetMap->NodeByID(index+1);
     };
 
     double FindShortestPath(TNodeID src, TNodeID dest, std::vector< TNodeID > &path) {
