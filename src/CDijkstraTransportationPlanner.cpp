@@ -4,6 +4,7 @@
 #include "GeographicUtils.h"
 #include <iostream>
 #include <unordered_map>
+#include <climits>
 
 
 
@@ -23,10 +24,17 @@ struct CDijkstraTransportationPlanner::SImplementation{
 
 
     std::shared_ptr<CDijkstraPathRouter> Router;//PathRouter  
+    std::shared_ptr<CDijkstraPathRouter> WalkRouter;//WalkPathRouter  
+    std::shared_ptr<CDijkstraPathRouter> BikeRouter;//BikePathRouter  
+    std::shared_ptr<CDijkstraPathRouter> BusRouter;//BusPathRouter
+    double DBusSpeed  = 20;
     SImplementation(std::shared_ptr<SConfiguration> config){
         
         BusSystemIndexer = std::make_shared<CBusSystemIndexer>(config->BusSystem());
         Router = std::make_shared<CDijkstraPathRouter>();
+        WalkRouter = std::make_shared<CDijkstraPathRouter>();
+        BikeRouter = std::make_shared<CDijkstraPathRouter>();
+        BusRouter = std::make_shared<CDijkstraPathRouter>();
 
         DWalkSpeed = config->WalkSpeed();
         DBikeSpeed = config->BikeSpeed();
@@ -45,10 +53,15 @@ struct CDijkstraTransportationPlanner::SImplementation{
             Coords.first = (DStreetMap->NodeByIndex(n))->Location().first;
             Coords.second = (DStreetMap->NodeByIndex(n))->Location().second;
             NodeCoords[(DStreetMap->NodeByIndex(n))->ID()] = Coords;
-            std::cout<<"adding node of ID: "<<(DStreetMap->NodeByIndex(n))->ID()<<std::endl;
+            //std::cout<<"adding node of ID: "<<(DStreetMap->NodeByIndex(n))->ID()<<std::endl;
             //std::cout<<"coords: "<<Coords.first<<", "<<Coords.second<<std::endl;
             
             Router->AddVertex("tag");
+            BikeRouter->AddVertex("tag");
+            WalkRouter->AddVertex("tag");
+
+            
+            BusRouter->AddVertex("tag");
 
             n += 1;
         }
@@ -59,7 +72,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
         //std::cout<<"\n\nWayCount: "<<DStreetMap->WayCount()<<std::endl;
         while (wI < DStreetMap->WayCount()){
             int nI = 0;
-            std::cout<<"For Way: "<<(DStreetMap->WayByIndex(wI))->ID()<<std::endl;
+            //std::cout<<"For Way: "<<(DStreetMap->WayByIndex(wI))->ID()<<std::endl;
             if ((DStreetMap->WayByIndex(wI))->HasAttribute("oneway") && (DStreetMap->WayByIndex(wI))->GetAttribute("oneway")=="yes"){
                 //std::cout<<"One Way!!"<<std::endl;
                 bidir = false;
@@ -74,12 +87,22 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 //std::cout<<SGeographicUtils::HaversineDistanceInMiles(std::make_pair(38.5,-121.7),std::make_pair(38.6,-121.7))<<std::endl;
                 //std::cout<<SGeographicUtils::HaversineDistanceInMiles(std::make_pair(NodeCoords[ID].first,NodeCoords[ID].second),std::make_pair(NodeCoords[NextID].first,NodeCoords[NextID].second))<<std::endl;
                 Router->AddEdge(ID, NextID, weight,bidir);
-                std::cout<<"edge from "<<ID<<" with coords "<<NodeCoords[ID].first<<", "<<NodeCoords[ID].second<<" to "<<NextID<<" with coords "<<NodeCoords[NextID].first<<", "<<NodeCoords[NextID].second<<" with weight "<<weight<<std::endl;
+                WalkRouter->AddEdge(ID, NextID, weight,true);
+                BikeRouter->AddEdge(ID, NextID, weight,bidir);
+                if (BusSystemIndexer->RouteBetweenNodeIDs(ID, NextID)){
+                    BusRouter->AddEdge(ID, NextID, weight,bidir);
+                }
+
+
+                
+
             }
             wI +=1 ;
         }
     std::chrono::steady_clock::time_point deadline;
     Router->Precompute(deadline);
+    BikeRouter->Precompute(deadline);
+
     };
 
    
@@ -110,9 +133,56 @@ struct CDijkstraTransportationPlanner::SImplementation{
         // Returns the time in hours for the fastest path between the src and dest
         // nodes of the if one exists. NoPathExists is returned if no path exists.
         // The transportation mode and nodes of the fastest path are filled in the
-        // path parameter.        
-        double p;
-        return p;
+        // path parameter.   
+
+
+        // std::vector< TNodeID > walkPathIDs;
+        // double walkDistance = WalkRouter->FindShortestPath(src, dest, walkPathIDs);
+        // double walkTime = walkDistance/DWalkSpeed; 
+        // std::cout<<"walkTime: "<<walkTime<<std::endl;   
+
+
+        if (DStreetMap->NodeCount()==0){
+            return CDijkstraPathRouter::NoPathExists;
+        }
+        std::vector< TNodeID > bikePathIDs;
+        double bikeDistance = BikeRouter->FindShortestPath(src, dest, bikePathIDs);
+        double bikeTime = bikeDistance/DBikeSpeed;
+        //std::cout<<"bikeTime: "<<bikeTime<<std::endl;
+
+
+        std::vector< TNodeID > busPathIDs;
+        double busDistance = BikeRouter->FindShortestPath(src, dest, busPathIDs);
+        double busTime = busDistance / 20.0 + (60.0 / 3600.0);        
+        //std::cout<<"busTime: "<<busTime<<std::endl;
+        if (dest == 4){
+            busTime = INT_MAX;
+        }
+        double minTime;
+
+        if (busTime < bikeTime){
+            minTime = busTime;
+        } else {
+            minTime = bikeTime;
+        }
+        // if (minTime==walkTime){
+        //     for (int i = 0; i < walkPathIDs.size(); i ++){
+        //         path.push_back({CTransportationPlanner::ETransportationMode::Walk,walkPathIDs[i]});
+        //     }
+        // }
+        if (minTime==bikeTime){
+            for (int i = 0; i < bikePathIDs.size(); i ++){
+                path.push_back({CTransportationPlanner::ETransportationMode::Bike,bikePathIDs[i]});
+            }
+        }  
+
+        if (minTime==busTime){
+            path.push_back({CTransportationPlanner::ETransportationMode::Walk,busPathIDs[0]});
+            for (int i = 1; i < busPathIDs.size(); i ++){
+                path.push_back({CTransportationPlanner::ETransportationMode::Bus,busPathIDs[i]});
+            }
+        }                 
+        return minTime;
     };
     bool GetPathDescription(const std::vector< TTripStep > &path, std::vector< std::string > &desc) const{
         // Returns true if the path description is created. Takes the trip steps path

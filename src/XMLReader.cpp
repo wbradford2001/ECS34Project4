@@ -171,7 +171,7 @@ bool CXMLReader::ReadEntity(SXMLEntity &entity, bool skipcdata){
     //Get length of current element i.e. count number of chars until you reach ">" which means element is closed
     l=0;
     while (DImplementation->src->Peek(temp)){
-        std::cout<<temp<<std::endl;
+        //std::cout<<temp<<std::endl;
         TempVector2.push_back(temp);
         DImplementation->src->Get(temp);
         l += 1;
@@ -203,7 +203,7 @@ bool CXMLReader::ReadEntity(SXMLEntity &entity, bool skipcdata){
     char char_array[TempVector2.size() + 1];
 
     strcpy(char_array, str.c_str());
-    std::cout<<char_array<<std::endl;
+    //std::cout<<char_array<<std::endl;
     startCompleted=false;
     XML_Parse(DImplementation->p, char_array, TempVector2.size(), false);
 
