@@ -141,44 +141,77 @@ struct CBusSystemIndexer::SImplementation{
 };
 
 CBusSystemIndexer::CBusSystemIndexer(std::shared_ptr<CBusSystem> bussystem){
+    /*
+        Input: shared pointer to an instance of bussystem.
+        Output: makes a unique pointer to an instance of SImplementation for BusSystemIndexer.
+    */
     DImplementation = std::make_unique<SImplementation>(bussystem);
 };
 
 CBusSystemIndexer::~CBusSystemIndexer(){
-
+    /*
+        Destructor...
+    */
 };
 
 std::size_t CBusSystemIndexer::StopCount() const noexcept{
-
+    /*
+        Returns the number of stops in the CBusSystem being indexed.
+        (CBusSystem takes in 2 DSVReaders for route and stop)
+    */
     return DImplementation->StopCount();
 };
 std::size_t CBusSystemIndexer::RouteCount() const noexcept{
+    /*
+        Returns the number of routes in the CBusSystem being indexed.
+    */
    
     return DImplementation->RouteCount();
 };
 
 std::shared_ptr<CBusSystem::SStop> CBusSystemIndexer::SortedStopByIndex(std::size_t index) const noexcept{
+    /*
+        Input: an index
+        ~Sorted vector of SStops (based on IDs)~
+        Output: null ptr (if index >= StopCount())
+                corresponding instance of SStop (otherwise)
+    */
 
     return DImplementation->SortedStopByIndex(index);
 };
 
 std::shared_ptr<CBusSystem::SRoute> CBusSystemIndexer::SortedRouteByIndex(std::size_t index) const noexcept{
-
+    /*
+        Input: an index
+        ~Sorted vector of SRoutes (based on names)~
+        Output: null ptr (if index >= StopCount())
+                corresponding instance of SRoute (otherwise)
+    */
     return DImplementation->SortedRouteByIndex(index);
 };
 
 std::shared_ptr<CBusSystem::SStop> CBusSystemIndexer::StopByNodeID(TNodeID id) const noexcept{
-
+    /*
+        Input: an ID.
+        Output: corresponding instance of SStop.
+    */
     return DImplementation->StopByNodeID(id);
 };
 
 bool CBusSystemIndexer::RoutesByNodeIDs(TNodeID src, TNodeID dest, std::unordered_set<std::shared_ptr<SRoute> > &routes) const noexcept{
-
+    /*
+        Input: Node ID for source, Node ID for destination, unordered_set for storing SRoutes
+        ~ All routes that have a route segment between the stops at the src and dest will be placed in the routes unordered set~
+        Output: true (if at least 1 route exits)
+                false (otherwise)
+    */
     return DImplementation->RoutesByNodeIDs(src, dest, routes);
 };
 
 bool CBusSystemIndexer::RouteBetweenNodeIDs(TNodeID src, TNodeID dest) const noexcept{
-
+    /*
+        Returns true if at least one route exists between the stops at the src and dest node IDs.
+    */
     return DImplementation->RouteBetweenNodeIDs(src,  dest);
 };
 

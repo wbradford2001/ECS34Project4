@@ -97,8 +97,7 @@ int main(int argc, char *argv[]){
         if(SpeedTester.OutputResults(ResultsFactory,Parser.Verbose())){
             return EXIT_SUCCESS;        
         }
-    }
-
+    } 
     return EXIT_FAILURE;
 }
 

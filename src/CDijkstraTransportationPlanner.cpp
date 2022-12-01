@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <climits>
+#include "StreetMap.h"
 
 
 
@@ -184,9 +185,42 @@ struct CDijkstraTransportationPlanner::SImplementation{
         }                 
         return minTime;
     };
+    std::string toString(CTransportationPlanner::ETransportationMode mode) {
+        std::string returnString;
+        if (mode == CTransportationPlanner::ETransportationMode::Walk) {
+            returnString = "Walk";
+        } else if (mode == CTransportationPlanner::ETransportationMode::Bus) {
+            returnString = "Bus";
+        } else if (mode == CTransportationPlanner::ETransportationMode::Bike) {
+            returnString = "Bike";
+        }
+        return returnString;
+    }
     bool GetPathDescription(const std::vector< TTripStep > &path, std::vector< std::string > &desc) const{
-        // Returns true if the path description is created. Takes the trip steps path
-        // and converts it into a human readable set of steps.
+        /* Returns true if the path description is created. Takes the trip steps path
+        and converts it into a human readable set of steps. */
+        std::string vectorString;
+        for (int i = 0; i < path.size(); i++) {
+            auto node = DStreetMap->NodeByID(path[i].second);
+            if (i == 0) {
+                CStreetMap::TLocation location = node->Location();
+                std::string locationString = SGeographicUtils::ConvertLLToDMS(location);
+                vectorString = "Start at" + locationString;
+                desc.push_back(vectorString); 
+            } else if (i == path.size() - 1) {
+                CStreetMap::TLocation location = node->Location();
+                std::string locationString = SGeographicUtils::ConvertLLToDMS(location);
+                vectorString = "End at" + locationString;
+                desc.push_back(vectorString);
+            } else {
+                auto nextNode = DStreetMap->NodeByID(path[i+1].second);
+                auto direction = SGeographicUtils::BearingToDirection(SGeographicUtils::CalculateBearing(node->Location(),nextNode->Location()));
+
+            }
+            
+            
+
+        }
         return true;
     };
 };

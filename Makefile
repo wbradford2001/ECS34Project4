@@ -8,7 +8,7 @@ BIN_DIR=./bin
 OBJ_DIR=./obj
 
 CXXFLAG=-std=c++17 -I $(INC_DIR) -I /opt/local/include
-LDFLAGS=-L /opt/local/lib -lgtest -lgtest_main -lpthread -lexpat
+LDFLAGS=-L /opt/local/lib -lgtest -lgmock -lgtest_main -lpthread -lexpat
 
 all: directories  runtest
 
@@ -140,14 +140,14 @@ $(OBJ_DIR)/GeographicUtils.o: $(SRC_DIR)/GeographicUtils.cpp $(INC_DIR)/Geograph
 	$(CXX) -o $(OBJ_DIR)/GeographicUtils.o $(CXXFLAG) -c $(SRC_DIR)/GeographicUtils.cpp
 
 #TransportationPlannerCommandLine
-$(BIN_DIR)/testtpcl: $(OBJ_DIR)/TPCommandLineTest.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o  $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o
-	$(CXX) -o $(BIN_DIR)/testtpcl $(OBJ_DIR)/TPCommandLineTest.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/StringDataSource.o  $(LDFLAGS)
+$(BIN_DIR)/testtpcl: $(OBJ_DIR)/TPCommandLineTest.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o  $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/DSVWriter.o $(OBJ_DIR)/StringDataSink.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/StringUtils.o 
+	$(CXX) -o $(BIN_DIR)/testtpcl $(OBJ_DIR)/TPCommandLineTest.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/StringDataSink.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/DSVWriter.o $(OBJ_DIR)/StringUtils.o  $(LDFLAGS)
 
 $(OBJ_DIR)/TPCommandLineTest.o: $(TESTSRC_DIR)/TPCommandLineTest.cpp $(INC_DIR)/TransportationPlannerCommandLine.h 
 	$(CXX) -o $(OBJ_DIR)/TPCommandLineTest.o $(CXXFLAG) -c $(TESTSRC_DIR)/TPCommandLineTest.cpp $(LDFLAGS) 
 
 $(OBJ_DIR)/CTransportationPlannerCommandLine.o: $(SRC_DIR)/CTransportationPlannerCommandLine.cpp $(INC_DIR)/TransportationPlannerCommandLine.h $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/CSVBusSystem.o
-	$(CXX) -o $(OBJ_DIR)/CTransportationPlannerCommandLine.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/CSVBusSystem.o $(CXXFLAG) -c $(SRC_DIR)/CTransportationPlannerCommandLine.cpp 	
+	$(CXX) -o $(OBJ_DIR)/CTransportationPlannerCommandLine.o $(CXXFLAG) -c $(SRC_DIR)/CTransportationPlannerCommandLine.cpp 	
 
 #Testfiledatass
 $(BIN_DIR)/testfiledatass: $(OBJ_DIR)/FileDataSSTest.o $(OBJ_DIR)/FileDataSource.o  $(OBJ_DIR)/FileDataSink.o $(OBJ_DIR)/FileDataFactory.o

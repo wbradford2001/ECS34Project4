@@ -195,15 +195,24 @@ struct CDijkstraPathRouter::SImplementation{
 
 CDijkstraPathRouter::CDijkstraPathRouter(){
     DImplementation = std::make_unique<SImplementation>();
+    /*
+
+    */
 };
 CDijkstraPathRouter::~CDijkstraPathRouter(){
 
 };
 
 std::size_t CDijkstraPathRouter::VertexCount() const noexcept{
+    /*
+
+    */
     return DImplementation->VertexCount();
 };
 CDijkstraPathRouter::TVertexID CDijkstraPathRouter::AddVertex(std::any tag) noexcept{
+    /*
+        
+    */
     return DImplementation->AddVertex(tag);
 };
 std::any CDijkstraPathRouter::GetVertexTag(TVertexID id) const noexcept{
