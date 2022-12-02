@@ -91,10 +91,10 @@ struct CDijkstraPathRouter::SImplementation{
 
         //compute Dijkstra's for every vertex
         // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
-        for (int i = 0; i < VList.size(); i ++){
+        //for (int i = 0; i < VList.size(); i ++){
             // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
-            DijkStraAuxill(VList[i]);
-        }
+          //  DijkStraAuxill(VList[i]);
+        //}
         // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
        
         //print all paths
@@ -201,7 +201,7 @@ struct CDijkstraPathRouter::SImplementation{
             
             return NoPathExists;
         };
-        
+        DijkStraAuxill(src);
         double pathLength = VertexToPathLengths[src][dest];
         std::vector<int> pathIDs = VertexToPaths[src][dest];
         for (int i=0; i<pathIDs.size(); i++){
