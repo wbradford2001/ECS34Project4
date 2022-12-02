@@ -253,7 +253,7 @@ TEST(TransporationPlannerCommandLine, ErrorTest){
                                                             "node\n"
                                                             "node oops\n"
                                                             "shortest\n"
-                                                            "shortest bar 123\n"
+                                                            "shortest   bar   123\n"
                                                             "fastest\n"
                                                             "fastest 123 nope\n"
                                                             "save\n"

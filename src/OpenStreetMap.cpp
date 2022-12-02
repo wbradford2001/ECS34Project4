@@ -1,50 +1,42 @@
 #include "OpenStreetMap.h"
-
 #include <unordered_map>
 #include <iostream>
 
 struct COpenStreetMap::SImplementation{
 
     struct SNode : public CStreetMap::SNode{
+        std::vector< TNodeID > Nodess;
         TNodeID ThisNodeID;
-        TLocation ThisNodeLocation;
-
-        std::unordered_map<std::string,std::string> Attributes;
-        std::vector< std::string > Keys;        
-
+        TLocation Locations;
+        std::vector<std::pair<double,double>> locations;
+        std::unordered_map<std::string,std::string> NAttributes;
+        std::vector< std::string > NKeys;
         ~SNode(){};
         TNodeID ID() const noexcept{
-            // Returns the id of the SNode
             return ThisNodeID;
         }
 
         TLocation Location() const noexcept{
-            // Returns the lat/lon location of the SNode
-            return ThisNodeLocation;
-
+            return Locations;
         }
 
         std::size_t AttributeCount() const noexcept{
-            // Returns the number of attributes attached to the SNode
-            return Keys.size();
+            return NAttributes.size();
         }
 
         std::string GetAttributeKey(std::size_t index) const noexcept{
-            // Returns the key of the attribute at index, returns empty string if index
-            // is greater than or equal to AttributeCount()
-            return index < Keys.size() ? Keys[index] : std::string();
+            return index < NKeys.size() ? NKeys[index] : std::string();
+
         }
 
         bool HasAttribute(const std::string &key) const noexcept{
-            // Returns if the attribute is attached to the SNode
-            return Attributes.find(key) != Attributes.end();
+            return NAttributes.find(key) != NAttributes.end();
+
         }
 
         std::string GetAttribute(const std::string &key) const noexcept{
-            // Returns the value of the attribute specified by key, returns empty string
-            // if key hasn't been attached to SNode
-            auto Search = Attributes.find(key);
-            if(Search == Attributes.end()){
+            auto Search = NAttributes.find(key);
+            if(Search == NAttributes.end()){
                 return std::string();
             }
             return Search->second;
@@ -55,172 +47,186 @@ struct COpenStreetMap::SImplementation{
     struct SWay : public CStreetMap::SWay{
         std::vector< TNodeID > NodesOfTheWay;
         TWayID ThisWayID;
+        TNodeID ThisNodeID;
         std::unordered_map<std::string,std::string> Attributes;
         std::vector< std::string > Keys;
 
         ~SWay(){};
         TWayID ID() const noexcept{
-            // Returns the id of the SWay
             return ThisWayID;
         }
 
         std::size_t NodeCount() const noexcept{
-            // Returns the number of nodes in the way
             return NodesOfTheWay.size();
         }
 
         TNodeID GetNodeID(std::size_t index) const noexcept{
-            // Returns the node id of the node at index, returns InvalidNodeID if index
-        // is greater than or equal to NodeCount()
             return index < NodesOfTheWay.size() ? NodesOfTheWay[index] : InvalidNodeID;
         }
 
         std::size_t AttributeCount() const noexcept{
-            // Returns the number of attributes attached to the SWay
             return Attributes.size();
         }
 
         std::string GetAttributeKey(std::size_t index) const noexcept{
-            // Returns the key of the attribute at index, returns empty string if index
-            // is greater than or equal to AttributeCount()
             return index < Keys.size() ? Keys[index] : std::string();
         }
 
         bool HasAttribute(const std::string &key) const noexcept{
-            // Returns if the attribute is attached to the SWay
             return Attributes.find(key) != Attributes.end();
         }
 
         std::string GetAttribute(const std::string &key) const noexcept{
-            // Returns if the attribute is attached to the SWay
             auto Search = Attributes.find(key);
             if(Search == Attributes.end()){
                 return std::string();
             }
             return Search->second;
         }
-
     };
 
     std::vector< std::shared_ptr< SWay > > AllWays;
     std::unordered_map< TWayID, std::shared_ptr< SWay > > MappedWays;
-    
-    std::vector< std::shared_ptr< SNode > > AllNodes;
-    std::unordered_map< TNodeID, std::shared_ptr< SNode > > MappedNodes;    
+    std::vector <std::shared_ptr< SNode > > AllNodes;
+    std::unordered_map< TNodeID, std::shared_ptr< SNode > > MappedNodes;
 
     SImplementation(std::shared_ptr<CXMLReader> src){
-
         SXMLEntity Entity;
+        std::cout<<"beforeread"<<std::endl;
 
-        
         // check osm start first
         while(src->ReadEntity(Entity)){
-            std::cout<<Entity.DNameData<<std::endl;
-            if(Entity.DNameData == "osm" && Entity.DType == SXMLEntity::EType::EndElement || src->End()){
+            std::cout<<"afterread"<<std::endl;
+            if(Entity.DNameData == "osm" && Entity.DType == SXMLEntity::EType::EndElement){
                 break;
             }
-            if(Entity.DNameData == "node"){
-
+            std::cout<<"afterosm"<<std::endl;
+            if(Entity.DNameData == "node" && Entity.DType == SXMLEntity::EType::StartElement){
                 // Parse node
-                auto NewNode = std::make_shared<SNode>();
+                // std::vector< TNodeID> NodesOfTheWayTVector;
 
-                NewNode->ThisNodeID = stoi(Entity.AttributeValue("id"));
-   
-                NewNode->ThisNodeLocation.first = stod(Entity.AttributeValue("lat"));
-                NewNode->ThisNodeLocation.second = stod(Entity.AttributeValue("lon"));
+                std::vector<std::string>NKeyVector;
+                std::unordered_map<std::string,std::string>NAttributeMap;
+                std::vector<std::pair<double,double>> locations;
 
-                if (Entity.DType == SXMLEntity::EType::StartElement){
+                auto NewNode = std::make_shared<SNode>(); // pair up the nodes
+                // auto locations = std::make_pair(double (val1), double (val2)); // pair up the lon and lat
+                NewNode->ThisNodeID = stod(Entity.AttributeValue("id"));
+                 //if (Entity.DNameData == "lat" && Entity.DNameData == "lon")
+                //{
                     
-                    src->ReadEntity(Entity);
-                    while (Entity.DNameData != "node"){
-                        
-                        if (Entity.DNameData=="tag"){
-                            NewNode->Keys.push_back(Entity.AttributeValue("k"));
-                            NewNode->Attributes[Entity.AttributeValue("k")] = Entity.AttributeValue("v"); 
+                NewNode->Locations = std::make_pair(stod(Entity.AttributeValue("lat")),(stod(Entity.AttributeValue("lon"))));
+                     // NewNode->Locations = std::make_pair(1,2);
+                //}
+                 std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+                while(src->ReadEntity(Entity))
+                {
+                     std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+                    if(Entity.DNameData == "tag" && Entity.DType == SXMLEntity::EType::StartElement)
+                    {
+                        NKeyVector.push_back(Entity.AttributeValue("k"));
+                        NewNode->NKeys = NKeyVector;
+                        NAttributeMap.insert({Entity.AttributeValue("k"), Entity.AttributeValue("v")});
+                        for (int t = 0; t < NAttributeMap.size(); t++)
+                        {
+                            std::cout<<"NAttributeMap:"<<NAttributeMap[NKeyVector[t]]<<std::endl;
                         }
-                        src->ReadEntity(Entity);
+                        NewNode->NAttributes = NAttributeMap;
+                    }
+                    if(Entity.DNameData == "tag" && Entity.DType == SXMLEntity::EType::EndElement)
+                    {
+                        continue;
+                    }
+                    else if (Entity.DNameData == "node" && Entity.DType == SXMLEntity::EType::EndElement)
+                    {
+                        break;
                     }
                 }
-                
-                // Parse rest
-                AllNodes.push_back(NewNode);
+                 std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+                AllNodes.push_back(NewNode); // push all of them back into a vector afterwards
                 MappedNodes[NewNode->ID()] = NewNode;
-
             }
-            
             if(Entity.DNameData == "way" && Entity.DType == SXMLEntity::EType::StartElement){
                 // Parse way
+                std::vector< TNodeID> NodesOfTheWayTVector;
+                std::vector<std::string>WKeyVector;
+                std::unordered_map<std::string,std::string>WAttributeMap;
+
                 auto NewWay = std::make_shared<SWay>();
-                    //id
-                NewWay->ThisWayID = stoi(Entity.AttributeValue("id"));
-                
-                
-                // Parse nodes
-                src->ReadEntity(Entity);
-
-                while (Entity.DNameData != "way" && !(src->End())){
-                    if (Entity.DNameData=="nd"){
-                        TNodeID id = stoi(Entity.AttributeValue("ref"));
-                        NewWay->NodesOfTheWay.push_back(id);                        
-                        
-                    } else if (Entity.DNameData == "tag"){
-                        NewWay->Keys.push_back(Entity.AttributeValue("k"));
-                        NewWay->Attributes[Entity.AttributeValue("k")] = Entity.AttributeValue("v");                        
+                NewWay->ThisWayID = stod(Entity.AttributeValue("id")); // makes the string into an integer id
+                 std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+                while(src->ReadEntity(Entity))
+                {
+                    if (Entity.DNameData == "nd" && Entity.DType == SXMLEntity::EType::StartElement)
+                    {
+                        NodesOfTheWayTVector.push_back(stod(Entity.AttributeValue("ref")));
+                        NewWay->NodesOfTheWay = NodesOfTheWayTVector;
+                        for (int s = 0; s < NodesOfTheWayTVector.size(); s++)
+                        {
+                            std::cout<<"Nodes:"<<NodesOfTheWayTVector[s]<<std::endl;
+                        }
                     }
-                    src->ReadEntity(Entity);
-
+                    if (Entity.DNameData == "tag" && Entity.DType == SXMLEntity::EType::StartElement)
+                    {
+                        WKeyVector.push_back(Entity.AttributeValue("k"));
+                        NewWay->Keys = WKeyVector;
+                        WAttributeMap.insert({Entity.AttributeValue("k"), (Entity.AttributeValue("v"))});
+                        NewWay->Attributes = WAttributeMap;
                     }
-
+                    if (Entity.DNameData == "nd" && Entity.DType == SXMLEntity::EType::EndElement)
+                    {
+                        continue;
+                    }
+                    if (Entity.DNameData == "tag" && Entity.DType == SXMLEntity::EType::EndElement)
+                    {
+                        continue;
+                    }
+                    else if(Entity.DNameData == "way" && Entity.DType == SXMLEntity::EType::EndElement)
+                    {
+                        break;
+                    }
+                     std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+                }
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+                // Parse rest
                 AllWays.push_back(NewWay);
                 MappedWays[NewWay->ID()] = NewWay;
             }
-
         }
-        
-
-    }
+        std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl; 
+    };
 
     std::size_t NodeCount() const noexcept{
-        // Returns the number of nodes in the map
         return AllNodes.size();
-    }
+    };
 
     std::size_t WayCount() const noexcept{
-        // Returns the number of ways in the map
         return AllWays.size();
-    }
+    };
 
     std::shared_ptr<CStreetMap::SNode> NodeByIndex(std::size_t index) const noexcept{
-        // Returns the SNode associated with index, returns nullptr if index is
-        // larger than or equal to NodeCount()
-        return index < AllNodes.size()? AllNodes[index] : nullptr ;
-    }
+        return AllNodes[index];
+    };
 
     std::shared_ptr<CStreetMap::SNode> NodeByID(TNodeID id) const noexcept{
-        // Returns the SNode with the id of id, returns nullptr if doesn't exist
-        auto Search = MappedNodes.find(id);
-        if(Search == MappedNodes.end()){
-            return nullptr;
-        }
-        return Search->second;         
-
-    }
+            auto Search = MappedNodes.find(id);
+            if(Search == MappedNodes.end()){
+                return nullptr;
+            }
+            return Search->second;
+    };
 
     std::shared_ptr<CStreetMap::SWay> WayByIndex(std::size_t index) const noexcept{
-        // Returns the SWay associated with index, returns nullptr if index is
-        // larger than or equal to WayCount()
-        return index < AllWays.size()? AllWays[index] : nullptr;
-    }
+        return AllWays[index];
+    };
 
     std::shared_ptr<CStreetMap::SWay> WayByID(TWayID id) const noexcept{
-        // Returns the SWay with the id of id, returns nullptr if doesn't exist
-        auto Search = MappedWays.find(id);
-        if(Search == MappedWays.end()){
-            return nullptr;
-        }
-        return Search->second;        
-
-    }
+            auto Search = MappedWays.find(id);
+            if(Search == MappedWays.end()){
+                return nullptr;
+            }
+            return Search->second;
+    };
 };
 
 COpenStreetMap::COpenStreetMap(std::shared_ptr<CXMLReader> src){
@@ -254,4 +260,3 @@ std::shared_ptr<CStreetMap::SWay> COpenStreetMap::WayByIndex(std::size_t index) 
 std::shared_ptr<CStreetMap::SWay> COpenStreetMap::WayByID(TWayID id) const noexcept{
     return DImplementation->WayByID(id);
 }
-

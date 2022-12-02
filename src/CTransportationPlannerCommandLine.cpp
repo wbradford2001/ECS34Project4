@@ -36,13 +36,10 @@ struct CTransportationPlannerCommandLine::SImplementation {
         */
     };
     bool paramValidation (std::string param) {
-        std::cout<<"HELLO"<<std::endl;
         for (int i = 0; i < param.length(); i++){
-            std::cout<<"HELLO2"<<std::endl;
             if (!isdigit(param[i])) {
                 return false;
             }
-            std::cout<<"HELLO3"<<std::endl;
         }
         return true;
     };
@@ -218,7 +215,7 @@ struct CTransportationPlannerCommandLine::SImplementation {
                 if (splitCommand.size() != 3) {
                     ErrorString = Error(splitCommand[0], true, last);
                     OutputErrorString(ErrorString);
-                    std::cout<<"SHORTEST"<<std::endl;
+
                     continue;
                 } else if (splitCommand.size() == 3) {
                     if (paramValidation(splitCommand[1]) && paramValidation(splitCommand[2])) {
@@ -227,7 +224,6 @@ struct CTransportationPlannerCommandLine::SImplementation {
                     } else {
                         ErrorString = Error(splitCommand[0], false, last);
                         OutputErrorString(ErrorString);
-                        std::cout<<"SHORTEST BAR 123"<<std::endl;
                         continue;
                     }
                 }

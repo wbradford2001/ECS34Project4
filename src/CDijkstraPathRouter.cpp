@@ -55,21 +55,32 @@ struct CDijkstraPathRouter::SImplementation{
         // bidir is set to true an additional edge between dest and src is added. If
         // src or dest nodes do not exist, or if the weight is negative the AddEdge
         // will return false, otherwise it returns true.
-        if (!(VertexHash.at(src)) || !(VertexHash.at(dest)) || weight < 0){
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
+        if (VertexHash.find(src) == VertexHash.end() || VertexHash.find(dest) == VertexHash.end()){
+            //!(VertexHash.at(src)) || !(VertexHash.at(dest)) || weight < 0
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             return false;
         }
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         std::pair<std::shared_ptr<Vertex>, double> newPair;
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         newPair.first = VertexHash.at(dest); 
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         newPair.second = weight;
         //std::cout<<newPair.second<<std::endl;
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         VertexHash.at(src)->Nexts.push_back(newPair);
 
         if (bidir==true){
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             std::pair<std::shared_ptr<Vertex>, double> newPair;
             newPair.first = VertexHash.at(src); 
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             newPair.second = weight;
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             VertexHash.at(dest)->Nexts.push_back(newPair);
         }
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         return true;
 
     };
@@ -79,10 +90,12 @@ struct CDijkstraPathRouter::SImplementation{
     
 
         //compute Dijkstra's for every vertex
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         for (int i = 0; i < VList.size(); i ++){
-            
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             DijkStraAuxill(VList[i]);
         }
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
        
         //print all paths
         // for (int i = 0; i < VList.size(); i ++){
@@ -97,35 +110,43 @@ struct CDijkstraPathRouter::SImplementation{
 
     //Auxillary Dijkstra's Algorithm
     void DijkStraAuxill(TVertexID src){
+        std::cout<<"Source"<<src<<std::endl;
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         int n = VList.size();
-        
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         //distances[NodeID] = distance
         std::unordered_map<int, double> distances;
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         std::unordered_map<int, std::vector<int> > paths;
-        
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         for (int i = 0; i<n; i++){
             distances[VList[i]] = INT_MAX;
             paths[VList[i]] = {};
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         };
 
 
         //distance from source to itself is 0
         distances[src] = 0;
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         paths[src] = {(int)src};
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
 
         
 
         std::unordered_set<int> already_seen_map; //If Vertex ID is in already_seen, we have finished processing it.
-        
+        // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         //iterate until already_seen_map has all vertices
         int count = 0;
+        // std::cout<<__FILE__<<" @ line: "<<std::endl;
         while (already_seen_map.size()<n && count < n){
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             count += 1;
-
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             //find minimum distance vertex
             int minDist = INT_MAX;
             int minID = src;
-
+            // std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
             for (int vI = 0; vI < n; vI += 1){
                 //check if vertex not in seen and has minimal distance
                 if (already_seen_map.count(VList[vI])==0 && distances[VList[vI]]<minDist){

@@ -58,9 +58,9 @@ struct CCSVBusSystem::SImplementation{
             auto newStop = std::make_shared<SStop>();
             
             
-            newStop->ThisStopID = stoi(stopsrow[0]);
+            newStop->ThisStopID = stoull(stopsrow[0]);
             
-            newStop->ThisNodeID = stoi(stopsrow[1]);
+            newStop->ThisNodeID = stoull(stopsrow[1]);
             
             Stops.push_back(newStop);
             
@@ -84,7 +84,7 @@ struct CCSVBusSystem::SImplementation{
             };
 
 
-            routeHash[routesrow[0]].push_back(stoi(routesrow[1]));  
+            routeHash[routesrow[0]].push_back(stoull(routesrow[1]));  
             
             routesrow.clear();  
         };

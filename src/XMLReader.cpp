@@ -1,214 +1,140 @@
-#include "XMLEntity.h"
 #include "XMLReader.h"
-#include "DataSource.h"
+#include "StringUtils.h"
 #include <expat.h>
-#include <cstring>
+#include <deque> 
+#include <algorithm>
 #include <iostream>
 
-
-
-//CDSVReader
 struct CXMLReader::SImplementation{
-    std::shared_ptr< CDataSource > src;
-    XML_Parser p;
+    std::shared_ptr< CDataSource > Source;
+    /*Pointer to Data Source*/
+    XML_Parser Parser;
+    std::deque<SXMLEntity> DEntities;
+    /*A deque of XMLEntities*/
 
-};
+    void StartElement(const XML_Char *name, const XML_Char **atts) {
+        SXMLEntity NewEntity;
+        size_t Index = 0;
+        NewEntity.DNameData = name;
+        NewEntity.DType = SXMLEntity::EType::StartElement;
+        while(atts[Index]) {
+            NewEntity.SetAttribute(atts[Index], atts[Index + 1]);
+            Index += 2;
+        }
+        DEntities.push_back(NewEntity);
+    };
 
+    void EndElement(const XML_Char *name) {
+        SXMLEntity NewEntity;
+        NewEntity.DNameData = name;
+        NewEntity.DType = SXMLEntity::EType::EndElement;
+        DEntities.push_back(NewEntity);
+    };
 
-//number of spaces to print so each child element is indented
-int Depth;
+    void CharacterData(const XML_Char *s, int len) {
+        SXMLEntity NewEntity;
+        NewEntity.DType = SXMLEntity::EType::CharData;
+        std::string name(s,len);
 
+        name = StringUtils::Replace(name, "#", "&");
 
-SXMLEntity curEntity;
-bool startCompleted;
+        name = StringUtils::Replace(name, "&amp;", "&");
+        name = StringUtils::Replace(name, "&quot;", "\"");
+        name = StringUtils::Replace(name, "&apos;", "'");
+        name = StringUtils::Replace(name, "&lt;", "<");
+        name = StringUtils::Replace(name, "&gt;", ">");
 
+        NewEntity.DNameData = name;
+        // std::cout<<"name: "<<name<<std::endl;
+        // std::cout<<"DNameData: "<<NewEntity.DNameData<<std::endl;
+        DEntities.push_back(NewEntity);
+    };
 
-//Function to print start elements
-static void XMLCALL
-start(void *data, const XML_Char *el, const XML_Char **attr) {
-
-    SXMLEntity newEntity;
-    newEntity.DType = SXMLEntity::EType::StartElement;
-
-
+    static void StartElementCallback(void *userData, const XML_Char* name, const XML_Char **atts) {
+        /*
+            userData is a pointer to the instance of SImplementation ("this is passed into here")
+            passes in name and atts (attributes) automaticallly from the parser.
+        */
+        SImplementation* ReaderImplementation = (SImplementation*) userData;
+        ReaderImplementation->StartElement(name, atts);
+    };
+    static void EndElementCallback(void *userData, const XML_Char* name) {
+        SImplementation* ReaderImplementation = (SImplementation*) userData;
+        ReaderImplementation->EndElement(name);
+    };
+    static void CharacterDataCallback(void *userData, const XML_Char* s, int len) {
+        SImplementation* ReaderImplementation = (SImplementation*) userData;
+        ReaderImplementation->CharacterData(s, len);
+    };
     
-    newEntity.DNameData = el;
-    for (int i = 0; attr[i]; i += 2) {
-        newEntity.SetAttribute(attr[i], attr[i+1]);
-    }
-    
+    SImplementation(std::shared_ptr< CDataSource > src) {
+        Source = src;
+        Parser = XML_ParserCreate(NULL);
+        /*Creates a Parser*/
+        XML_SetUserData(Parser, this);
+        /*Does this refer to the instance of CXMLReader/SImplementation created?*/
+        XML_SetElementHandler(Parser,StartElementCallback,EndElementCallback);
+        /*Sets handlers for start and end tags*/
+        XML_SetCharacterDataHandler(Parser, CharacterDataCallback);
+        /*Sets handler for text*/
+    };
+    ~SImplementation() {
+        XML_ParserFree(Parser);
+        /*I am guessing this frees up memory taken up by the Parser?*/
+    };
 
+    bool End() const {
+        return DEntities.size() <= 0;
+    };
 
-    curEntity = newEntity;
-    startCompleted=true;
-    
-//   int i;
-//   (void)data;
-//   //print indent
-//     for (i = 0; i < Depth; i++){
-//         std::cout<<"   ";
-//     }
-//     //print element
-//     std::cout<<'<'<<el;
-//     //print attributes
-//     for (i = 0; attr[i]; i += 2) {
-//         std::cout<<' '<<attr[i]<<"=\""<<attr[i+1]<<"\"";
-//     }
-//     std::cout<<'>';
-//     std::cout<<std::endl;
+    bool ReadEntity(SXMLEntity &entity, bool skipcdata = false) {
+        bool Done = false;
+        while(!Done) {
+            std::vector<char> Buffer;
+            if(Source->Read(Buffer, 1800)) {
+                /*we're only reading 128 characters of the string at a time*/
 
-//     Depth++;
-}
+                //std::replace(Buffer.begin(), Buffer.end(), '&', '#');
 
-//Function to print end Elements
-static void XMLCALL
-end(void *data, const XML_Char *el) {
-   
-//   (void)data;
-//   (void)el;
-//   //decrease indent
-//     Depth--;
+                bool opened = false; //not opened (a char data) <a>hii</a>
+                for (int i = 0; i < Buffer.size(); i++) {
+                    if (Buffer[i] == '<') {
+                        opened = true;
+                    } else if (Buffer[i] == '>') {
+                        opened = false;
+                    }
+                    if (opened == false && Buffer[i] == '&') {
+                        Buffer[i] = '#';
+                    }
+                }
 
-//     for (int j = 0; j < Depth; j++){
-//         std::cout<<"   ";
-//     }    
-
-//     //print element
-//     std::cout<<"</"<<el<<'>'<<std::endl;
-
-
-
-    SXMLEntity newEntity;
-    newEntity.DType = SXMLEntity::EType::EndElement;
-
-
-    
-    newEntity.DNameData = el;
-
-    if (startCompleted==true){
-        for (int i = 0; i<curEntity.DAttributes.size(); i += 1) {
-            newEntity.SetAttribute(curEntity.DAttributes[i].first, curEntity.DAttributes[i].second);
-        }        
-    }
-
- 
-    
-
-
-    curEntity = newEntity;
-
-            
-
-
-
-    
-
-
-}
-
-CXMLReader::CXMLReader(std::shared_ptr< CDataSource > src){
-    DImplementation = std::make_unique<SImplementation>();
-    DImplementation->src = src;
-    DImplementation->p = XML_ParserCreate(NULL);
-    XML_SetElementHandler(DImplementation->p, start, end);
-
-
-};
-
-CXMLReader::~CXMLReader(){};
-
-bool CXMLReader::End() const{
-    char temp;
-    if (DImplementation->src->Peek(temp)){
-        return false;
-    }
-    return true;
-};
-
-bool CXMLReader::ReadEntity(SXMLEntity &entity, bool skipcdata){
-    //vector to store all the chars in DString
-    std::vector< char > TempVector;
-    char temp;
-    //length of current element
-    int l=0;
-
-    //handle CharData
-    // DImplementation->src->Peek(temp);
-    // std::cout<<temp<<std::endl;
-    // if (temp!= '<'){
-        
-    //     while (DImplementation->src->Peek(temp)){
-    //         if (temp=='<'){
-    //             break;
-    //         }
-    //         DImplementation->src->Get(temp);
-    //         l += 1;
-            
-    //         TempVector.push_back(temp);
-   
-
-    // }
-    // char* buffer = new char[l];
-    // for (int i=0; i < l;i++){
-    //     buffer[i]=TempVector[i];   
-
-    //     }
-
-    // if (skipcdata==false){
-        
-    //     entity.DType = SXMLEntity::EType::CharData;
-    //     entity.DNameData = buffer;
-    //     return true;
-    // }
-
-    // }
-
-
-
-    std::vector< char > TempVector2;
-
-
-    //Get length of current element i.e. count number of chars until you reach ">" which means element is closed
-    l=0;
-    while (DImplementation->src->Peek(temp)){
-        //std::cout<<temp<<std::endl;
-        TempVector2.push_back(temp);
-        DImplementation->src->Get(temp);
-        l += 1;
-        
-        if (TempVector2.size()>2 && TempVector2[0]=='<' && TempVector2[1]=='?' && TempVector2[2]=='x'){
-            while (temp != '>'){
-                DImplementation->src->Get(temp);
+                XML_Parse(Parser, Buffer.data(), Buffer.size(), Source->End());
+            } 
+            if (!DEntities.empty()) {
+                while (skipcdata == true && DEntities.front().DType == SXMLEntity::EType::CharData){
+                    DEntities.pop_front(); //<a> | hiii | </a>
+                }
+                entity = DEntities.front();
+                DEntities.pop_front();
+                Done = true;
+                return true;
             }
-            DImplementation->src->Get(temp);
-            
-            l = 0;
-            TempVector2.clear();
-            TempVector2.push_back('<');
-            
         }
-        
-        if (temp=='>'){
-
-            break;
-        }
-
-    }
-    
-
-    //I had issues passing in the TempVector2 directly, so I created a buffer and made it the same as the TempVector2
-
-    //Parse the buffer/element
-    std::string str{ TempVector2.begin(), TempVector2.end() };
-    char char_array[TempVector2.size() + 1];
-
-    strcpy(char_array, str.c_str());
-    //std::cout<<char_array<<std::endl;
-    startCompleted=false;
-    XML_Parse(DImplementation->p, char_array, TempVector2.size(), false);
-
-    entity = curEntity;
-
-    return true;
+    };
 };
 
+CXMLReader::CXMLReader(std::shared_ptr< CDataSource > src) {
+    DImplementation = std::make_unique<SImplementation>(src);
+};
+
+CXMLReader::~CXMLReader() {
+
+};
+
+bool CXMLReader::End() const {
+    return DImplementation->End();
+};
+
+bool CXMLReader::ReadEntity(SXMLEntity &entity, bool skipcdata) {
+    return DImplementation->ReadEntity(entity, skipcdata);
+};

@@ -31,7 +31,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
     std::shared_ptr<CDijkstraPathRouter> BusRouter;//BusPathRouter
     double DBusSpeed  = 20;
     SImplementation(std::shared_ptr<SConfiguration> config){
-        
+        std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         BusSystemIndexer = std::make_shared<CBusSystemIndexer>(config->BusSystem());
         Router = std::make_shared<CDijkstraPathRouter>();
         WalkRouter = std::make_shared<CDijkstraPathRouter>();
@@ -49,6 +49,7 @@ struct CDijkstraTransportationPlanner::SImplementation{
 
 
         int n = 0;
+         std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         while (n < DStreetMap->NodeCount()){
             //Update NodeCoordsHash
             std::pair<double, double> Coords;
@@ -57,17 +58,14 @@ struct CDijkstraTransportationPlanner::SImplementation{
             NodeCoords[(DStreetMap->NodeByIndex(n))->ID()] = Coords;
             //std::cout<<"adding node of ID: "<<(DStreetMap->NodeByIndex(n))->ID()<<std::endl;
             //std::cout<<"coords: "<<Coords.first<<", "<<Coords.second<<std::endl;
-            
             Router->AddVertex("tag");
             BikeRouter->AddVertex("tag");
-            WalkRouter->AddVertex("tag");
-
-            
+            WalkRouter->AddVertex("tag");   
             BusRouter->AddVertex("tag");
 
             n += 1;
         }
-
+        std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         //parse Ways
         int wI = 0;
         bool bidir = true;
@@ -80,31 +78,36 @@ struct CDijkstraTransportationPlanner::SImplementation{
                 bidir = false;
             }
             while (nI < DStreetMap->WayByIndex(wI)->NodeCount()-1){
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 int ID = DStreetMap->WayByIndex(wI)->GetNodeID(nI);
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 int NextID = DStreetMap->WayByIndex(wI)->GetNodeID(nI+1);
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 nI += 1;
-                
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 double weight = SGeographicUtils::HaversineDistanceInMiles(std::make_pair(NodeCoords[ID].first,NodeCoords[ID].second),std::make_pair(NodeCoords[NextID].first,NodeCoords[NextID].second));
-                
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 //std::cout<<SGeographicUtils::HaversineDistanceInMiles(std::make_pair(38.5,-121.7),std::make_pair(38.6,-121.7))<<std::endl;
                 //std::cout<<SGeographicUtils::HaversineDistanceInMiles(std::make_pair(NodeCoords[ID].first,NodeCoords[ID].second),std::make_pair(NodeCoords[NextID].first,NodeCoords[NextID].second))<<std::endl;
-                Router->AddEdge(ID, NextID, weight,bidir);
+                Router->AddEdge(ID, NextID, weight, bidir);
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 WalkRouter->AddEdge(ID, NextID, weight,true);
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 BikeRouter->AddEdge(ID, NextID, weight,bidir);
+                std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
                 if (BusSystemIndexer->RouteBetweenNodeIDs(ID, NextID)){
                     BusRouter->AddEdge(ID, NextID, weight,bidir);
                 }
-
-
-                
-
             }
             wI +=1 ;
+            std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
         }
+    std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
     std::chrono::steady_clock::time_point deadline;
     Router->Precompute(deadline);
+    std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
     BikeRouter->Precompute(deadline);
-
+    std::cout<<__FILE__<<" @ line: "<<__LINE__<<std::endl;
     };
 
    
@@ -196,109 +199,10 @@ struct CDijkstraTransportationPlanner::SImplementation{
             returnString = "Bike";
         }
         return returnString;
-    }
+    };
     bool GetPathDescription(const std::vector< TTripStep > &path, std::vector< std::string > &desc) const{
         /* Returns true if the path description is created. Takes the trip steps path
         and converts it into a human readable set of steps. */
-
-
-
-        std::string vectorString;
-        for (int i = 0; i < path.size(); i++) {
-            //current node
-            auto node = DStreetMap->NodeByID(path[i].second);
-            
-            //current location
-            CStreetMap::TLocation location = node->Location();
-
-            int prevDistance;
-            std::string prevStreet;
-            
-            
-            //first node
-            if (i == 0) {
-                std::string locationString = SGeographicUtils::ConvertLLToDMS(location);
-                vectorString = "Start at " + locationString;
-                desc.push_back(vectorString); 
-
-            //last node
-            } else if (i == path.size() - 1) {
-                std::string locationString = SGeographicUtils::ConvertLLToDMS(location);
-                vectorString = "End at " + locationString;
-                desc.push_back(vectorString);
-
-            //in between
-            } else {
-
-                //nextNode
-                auto nextNode = DStreetMap->NodeByID(path[i+1].second);
-                
-                //next Location
-                auto nextLocation = nextNode->Location();
-                
-                //Direction between location and next location
-                auto direction = SGeographicUtils::BearingToDirection(SGeographicUtils::CalculateBearing(location,nextLocation));
-                
-                //distance between location and next location
-
-//FIX ME        need to round the distance to only 2 decimal places
-                auto distance = SGeographicUtils::HaversineDistanceInMiles(location, nextLocation);
-     
-                
-                //transportation mode 
-                std::string transportation;
-                if (path[i].first == CTransportationPlanner::ETransportationMode::Bike){
-                    transportation = "Bike";
-                    }
-                
-                std::string along_or_towards;
-                std::string street;
-
-
-                
-                //There is a <way> that contains both the current node, and the next node. If the way has a name "for example Main St." then push "(transportation) (direction) along (street)"
-                // For example, bike E along Main St.
-
-
-//FIX ME         check if <way> containing both current/next has a name tag. Probably have to iterate through all ways and check if way contains both node IDs??
-                if (1)
-                    {
-                    along_or_towards = "along";
-                    
-
-//FiX ME            fill with name of <way>                  
-                    street = "Main St.";
-                }
-
-
-                //If <way> that contains both the current node and the next node does NOT have a name tag attribute, then push ""(transportation) (direction) towards (street)".
-                //For example "Bike N towards B St."
-                else
-                    {
-                    along_or_towards = "towards";
-                    
-                    street = "End";//In the test cases, the only place where this is applicable is when it should say end
-                } 
-
-
-                //Now we check for 2 stops on the same street. For example, if you travel from A->B, and B-> C, and A, B, and C are all on the same road, then count it as only A->C. So Check if the street from previous sentence is the same as the current street. If the current street is in the previous sentence added to desc, then take note of the distance of the last sentence, pop() desc, and add it to distance. 
-
-                  
-                if (street == prevStreet){
-                    distance += prevDistance;
-                    desc.pop_back()
-                }
-                desc.push_back(transportation + " " + direction + " " + along_or_towards + " " + street + " for " + std::to_string(distance) + " mi");
-
-
-                prevDistance = distance;//this is so we can keep track of prevous distance
-                prevStreet = street;
-
-            }
-//FIX ME You are also going to have to deal with the bus stops and routes in the first test cases. Theres also a bug that outputs the wrong directions and distances in the second test case idk why
-            
-
-        }
         return true;
     };
 };
