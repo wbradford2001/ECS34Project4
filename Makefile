@@ -192,9 +192,16 @@ $(OBJ_DIR)/StandardDataSource.o : $(SRC_DIR)/StandardDataSource.cpp $(INC_DIR)/S
 $(OBJ_DIR)/StandardErrorDataSink.o : $(SRC_DIR)/StandardErrorDataSink.cpp $(INC_DIR)/StandardDataSink.h
 	$(CXX) -o $(OBJ_DIR)/StandardErrorDataSink.o   $(CXXFLAG) -c $(SRC_DIR)/StandardErrorDataSink.cpp 
 #StringDataSink, StringDataSource, speedtest, kmlout kmlwriter, xmlwriter
+
 #speedtest
-$(BIN_DIR)/speedtest: $(SRC_DIR)/speedtest.cpp 
-	$(CXX) -o $(BIN_DIR)/speedtest $(CXXFLAG) -c $(SRC_DIR)/speedtest.cpp 
+#$(BIN_DIR)/speedtest: $(SRC_DIR)/speedtest.cpp 
+#	$(CXX) -o $(BIN_DIR)/speedtest $(CXXFLAG) -c $(SRC_DIR)/speedtest.cpp 
+
+$(BIN_DIR)/speedtest:  $(OBJ_DIR)/speedtest.o $(OBJ_DIR)/CBusSystemIndexer.o  $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/DSVWriter.o $(OBJ_DIR)/FileDataFactory.o $(OBJ_DIR)/FileDataSink.o $(OBJ_DIR)/FileDataSource.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/StandardDataSink.o $(OBJ_DIR)/StandardDataSource.o $(OBJ_DIR)/StandardErrorDataSink.o $(OBJ_DIR)/StringDataSink.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/StringUtils.o $(OBJ_DIR)/XMLReader.o $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/CDijkstraPathRouter.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o
+	$(CXX) -o $(BIN_DIR)/speedtest $(OBJ_DIR)/speedtest.o $(OBJ_DIR)/CBusSystemIndexer.o $(OBJ_DIR)/CDijkstraTransportationPlanner.o $(OBJ_DIR)/DSVReader.o $(OBJ_DIR)/DSVWriter.o $(OBJ_DIR)/FileDataFactory.o $(OBJ_DIR)/FileDataSink.o $(OBJ_DIR)/FileDataSource.o $(OBJ_DIR)/GeographicUtils.o $(OBJ_DIR)/OpenStreetMap.o $(OBJ_DIR)/StandardDataSink.o $(OBJ_DIR)/StandardDataSource.o $(OBJ_DIR)/StandardErrorDataSink.o $(OBJ_DIR)/StringDataSink.o $(OBJ_DIR)/StringDataSource.o $(OBJ_DIR)/StringUtils.o $(OBJ_DIR)/XMLReader.o  $(OBJ_DIR)/CSVBusSystem.o $(OBJ_DIR)/CTransportationPlannerCommandLine.o $(OBJ_DIR)/CDijkstraPathRouter.o -lexpat
+
+$(OBJ_DIR)/speedtest.o: $(SRC_DIR)/speedtest.cpp 
+	$(CXX) -o $(OBJ_DIR)/speedtest.o $(CXXFLAG) -c $(SRC_DIR)/speedtest.cpp 
 
 directories:
 	mkdir -p $(BIN_DIR)

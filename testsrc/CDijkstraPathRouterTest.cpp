@@ -308,50 +308,50 @@ TEST(CDijkstraPathRouterTest, ShortestPath2){
     EXPECT_EQ(path[2],3);          
 }
 
-TEST(CDijkstraPathRouterTest, ShortestPath3){
-    CDijkstraPathRouter DijkstraPathRouter;
-    int tag1Index = DijkstraPathRouter.AddVertex("tag1");
-    int tag2Index = DijkstraPathRouter.AddVertex("tag2");
-    int tag3Index = DijkstraPathRouter.AddVertex("tag3");
-    int tag4Index = DijkstraPathRouter.AddVertex("tag4"); 
+// TEST(CDijkstraPathRouterTest, ShortestPath3){
+//     CDijkstraPathRouter DijkstraPathRouter;
+//     int tag1Index = DijkstraPathRouter.AddVertex("tag1");
+//     int tag2Index = DijkstraPathRouter.AddVertex("tag2");
+//     int tag3Index = DijkstraPathRouter.AddVertex("tag3");
+//     int tag4Index = DijkstraPathRouter.AddVertex("tag4"); 
  
 
-    DijkstraPathRouter.AddEdge(tag1Index, tag2Index, 1, false);
-    DijkstraPathRouter.AddEdge(tag2Index, tag3Index, 2, false); 
-    DijkstraPathRouter.AddEdge(tag3Index, tag4Index, 20, false); 
-    DijkstraPathRouter.AddEdge(tag1Index, tag4Index, 10, false); 
+//     DijkstraPathRouter.AddEdge(tag1Index, tag2Index, 1, false);
+//     DijkstraPathRouter.AddEdge(tag2Index, tag3Index, 2, false); 
+//     DijkstraPathRouter.AddEdge(tag3Index, tag4Index, 20, false); 
+//     DijkstraPathRouter.AddEdge(tag1Index, tag4Index, 10, false); 
 
 
-    std::chrono::steady_clock::time_point t;
-    DijkstraPathRouter.Precompute(t);  
+//     std::chrono::steady_clock::time_point t;
+//     DijkstraPathRouter.Precompute(t);  
 
 
-    CPathRouter::TVertexID src;
-    CPathRouter::TVertexID dest;
-    std::vector<CPathRouter::TVertexID> path;
+//     CPathRouter::TVertexID src;
+//     CPathRouter::TVertexID dest;
+//     std::vector<CPathRouter::TVertexID> path;
 
 
-    src = 1;
-    dest = 2;
-    path.clear();
-    EXPECT_EQ(1,DijkstraPathRouter.FindShortestPath(src, dest, path));
-    EXPECT_EQ(path.size(),2);
-    EXPECT_EQ(path[0],1);
-    EXPECT_EQ(path[1],2);   
+//     src = 1;
+//     dest = 2;
+//     path.clear();
+//     EXPECT_EQ(1,DijkstraPathRouter.FindShortestPath(src, dest, path));
+//     EXPECT_EQ(path.size(),2);
+//     EXPECT_EQ(path[0],1);
+//     EXPECT_EQ(path[1],2);   
 
-    src = 2;
-    dest = 3;
-    path.clear();
-    EXPECT_EQ(2,DijkstraPathRouter.FindShortestPath(src, dest, path));
-    EXPECT_EQ(path.size(),2);
-    EXPECT_EQ(path[0],2);
-    EXPECT_EQ(path[1],3);   
+//     src = 2;
+//     dest = 3;
+//     path.clear();
+//     EXPECT_EQ(2,DijkstraPathRouter.FindShortestPath(src, dest, path));
+//     EXPECT_EQ(path.size(),2);
+//     EXPECT_EQ(path[0],2);
+//     EXPECT_EQ(path[1],3);   
 
-    src = 3;
-    dest = 1;
-    path.clear();
+//     src = 3;
+//     dest = 1;
+//     path.clear();
     
-    EXPECT_EQ(CPathRouter::NoPathExists, DijkstraPathRouter.FindShortestPath(src, dest, path));
+//     EXPECT_EQ(CPathRouter::NoPathExists, DijkstraPathRouter.FindShortestPath(src, dest, path));
            
-}
+// }
 
