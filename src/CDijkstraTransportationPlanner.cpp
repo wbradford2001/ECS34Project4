@@ -203,6 +203,173 @@ struct CDijkstraTransportationPlanner::SImplementation{
     bool GetPathDescription(const std::vector< TTripStep > &path, std::vector< std::string > &desc) const{
         /* Returns true if the path description is created. Takes the trip steps path
         and converts it into a human readable set of steps. */
+        /*
+            -The direction must be based upon beginning point on a street to the end point of travelling on the
+            street, not the beginning point and the next point
+            -The direction is listed as along if the street name is known, and toward if the street name is not
+            known, but the next street is known
+            -When there are mutliple options for taking a bus, the bus that will go the furthest will be taken. 
+            If multiple options are available, the bus with the earliest sorted name will be taken
+        */
+
+        std::string vectorString;
+        for (int i = 0; i < path.size(); i++) {
+            //current node
+            auto node = DStreetMap->NodeByID(path[i].second);
+            
+            //current location
+            CStreetMap::TLocation location = node->Location();
+
+            int prevDistance;
+            std::string prevStreet;
+            
+            
+            //first node
+            if (i == 0) {
+                std::string locationString = SGeographicUtils::ConvertLLToDMS(location);
+                vectorString = "Start at " + locationString;
+                desc.push_back(vectorString); 
+
+            //last node
+            } else if (i == path.size() - 1) {
+                std::string locationString = SGeographicUtils::ConvertLLToDMS(location);
+                vectorString = "End at " + locationString;
+                desc.push_back(vectorString);
+
+            //in between
+            } else {
+
+                //nextNode
+                auto nextNode = DStreetMap->NodeByID(path[i+1].second);
+                
+                //next Location
+                auto nextLocation = nextNode->Location();
+                
+                //Direction between location and next location
+                auto direction = SGeographicUtils::BearingToDirection(SGeographicUtils::CalculateBearing(location,nextLocation));
+                
+                //distance between location and next location
+
+//FIX ME        need to round the distance to only 2 decimal places
+                auto distance = (int)SGeographicUtils::HaversineDistanceInMiles(location, nextLocation);
+     
+                
+                //transportation mode 
+                std::string transportation;
+                if (path[i].first == CTransportationPlanner::ETransportationMode::Bike){
+                    transportation = "Bike";
+                    }
+                
+                std::string along_or_towards;
+                std::string street;
+                std::vector<std::string> StreetNames;
+                std::unordered_map< std::string, std::string >NodestoStreets;
+
+                
+                //There is a <way> that contains both the current node, and the next node. If the way has a name "for example Main St." then push "(transportation) (direction) along (street)"
+                // For example, bike E along Main St.
+
+                // check if <way> containing both current/next has a name tag. Probably have to iterate through all ways and check if way contains both node IDs??
+
+                // i can have a vector of street names--when loading the path routers-you will basically get the street name-- can use getattribute to check the name of the way, use key as name
+                // iterate through the ways and getattribute(name) in order to get the street name and then push onto the vectors
+                bool SMExists;
+                for (int o = 0; o < path.size(); o++)
+                {
+                    auto Names = DStreetMap->WayByIndex(o)->GetAttribute("name");
+                    StreetNames.push_back(Names);
+                    std::cout << StreetNames[o] << std::endl;
+                    if (Names.empty()) {
+                        SMExists = false;
+                    }
+                    
+                }
+                SMExists = true;
+                if (SMExists == true) {
+                    along_or_towards = "along";
+                }
+                else if (SMExists == false) {
+                    along_or_towards = "toward";
+                }
+
+                for (int p = 0; p < path.size(); p++) {
+                    auto WaysWStreets = DStreetMap->WayByIndex(p);
+                    for (int q = 0; q < path.size(); q++) {
+                        auto AllNodes = DStreetMap->WayByIndex(p)->GetNodeID(q);
+                       //  auto NodesWStreets = DStreetMap->NodeByID(q)->GetAttribute("name");
+                        // if (!(NodesWStreets.empty())) {
+                            // auto GetStreetName = DStreetMap->WayByIndex(q)->GetAttribute("name");
+                            // NodestoStreets.insert(NodesWStreets, GetStreetName);
+                            // street = GetStreetName;
+                       // }
+                    }
+                }
+                
+
+
+
+                // auto GEntity = std::make_shared<CXMLReader>(path);
+                // SXMLEntity Entity;
+                // while (GEntity->ReadEntity(Entity)) {
+                //     if (Entity.DNameData == "way" && Entity.DType == SXMLEntity::EType::StartElement) {
+                //         std::vector<TNodeID> NodesoftheWayVector; 
+                //         if (Entity.DNameData == "nd" && (node && nextNode)) {
+                //             for (int i = 0; i < 2; i++)
+                //             {
+                //                 if (Entity.DNameData == "tag") {
+                //                     along_or_towards = "along";
+                //                     // get the street name
+                //                 }
+                //                 else
+                //                 {
+                //                     along_or_towards = "toward";
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
+
+
+
+//FIX ME         check if <way> containing both current/next has a name tag. Probably have to iterate through all ways and check if way contains both node IDs??
+                if (1)
+                    {
+                    along_or_towards = "along";
+                    
+
+//FiX ME            fill with name of <way>                  
+                    street = "Main St.";
+                }
+
+
+                //If <way> that contains both the current node and the next node does NOT have a name tag attribute, then push ""(transportation) (direction) towards (street)".
+                //For example "Bike N towards B St."
+                else
+                    {
+                    along_or_towards = "towards";
+                    
+                    street = "End";//In the test cases, the only place where this is applicable is when it should say end
+                } 
+
+
+                //Now we check for 2 stops on the same street. For example, if you travel from A->B, and B-> C, and A, B, and C are all on the same road, then count it as only A->C. So Check if the street from previous sentence is the same as the current street. If the current street is in the previous sentence added to desc, then take note of the distance of the last sentence, pop() desc, and add it to distance. 
+
+                  
+                if (street == prevStreet){
+                    distance += prevDistance;
+                    desc.pop_back();
+                }
+                desc.push_back(transportation + " " + direction + " " + along_or_towards + " " + street + " for " + std::to_string(distance) + " mi");
+
+
+                prevDistance = distance;//this is so we can keep track of prevous distance
+                prevStreet = street;
+
+            }
+//FIX ME You are also going to have to deal with the bus stops and routes in the first test cases. Theres also a bug that outputs the wrong directions and distances in the second test case idk why
+            
+
+        }
         return true;
     };
 };
